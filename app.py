@@ -1,11 +1,7 @@
 from flask import Flask, render_template, jsonify
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine,func
-
 
 #Load From the Database file that I created. It is in this same directory
-from Database import Grade, dbpath
-import pandas as pd
+from Database import LoadScoresPerPeriod
 
 app = Flask(__name__)
 
@@ -20,14 +16,9 @@ def index():
 @app.route("/LoadData/<period>")
 def LoadData(period): 
 
-    #Load your SQLITE database
-    engine = create_engine(f'sqlite:///{dbpath}')
-    session = Session(engine)
+    scoreData = LoadScoresPerPeriod(period)
 
-    #Pull the data into pandas. We are filtering by the period
-    data = pd.read_sql(session.query(Grade).filter(Grade.Period == period).statement, session.bind)
-
-    data = data.groupby(["Sex"]).mean()
+    data = scoreData.groupby(["Sex"]).mean()
 
     #Produce a JSON object (aka a list of python dictionaries)
     scoreList = []

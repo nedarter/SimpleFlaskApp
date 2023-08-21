@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 
 import os
+import pandas as pd
 
 dbpath = "grades.sqlite"
 
@@ -18,6 +19,27 @@ class Grade(Base):
     Sex = Column(String)
     Period = Column(Integer)
     Score = Column(Integer)
+
+
+def LoadScoresPerPeriod(period):
+    #Load your SQLITE database
+    engine = create_engine(f'sqlite:///{dbpath}')
+    session = Session(engine)
+
+    
+
+    #Pull the data into pandas. We are filtering by the period    
+
+    try:
+    #SQL Alchemy 1.X version 
+        query = session.query(Grade).filter(Grade.Period == period).statement
+        data = pd.read_sql(query, session.bind)    
+    except:
+        #SQL Alchemy 2.0 version 
+        query  = text(str(session.query(Grade).filter(Grade.Period == period).statement))
+        data = pd.read_sql(query, engine.connect(), params={"Period_1":period})
+
+    return data
 
 
 if __name__ == "__main__":
@@ -34,23 +56,17 @@ if __name__ == "__main__":
     Base.metadata.create_all(engine)
 
     session = Session(engine)
-    for i in range(1000):
-        period = random.randrange(1,3)
+    for i in range(75):
+        period = random.randrange(1,4)
 
 
         if random.randrange(1,3) == 1: 
             sex = "Male"
-
-            if period == 2: 
-                multiplier = 1
-            else: 
-                multiplier = .7
-
         else: 
             sex = "Female"
-            multiplier = .9
+ 
 
-        score = random.randrange(60, 101) * multiplier
+        score = random.randrange(60, 101)
 
         session.add(Grade(Sex=sex, Period=period, Score=score))
 
@@ -59,7 +75,8 @@ if __name__ == "__main__":
 
     results = session.query(Grade).all()
 
-    data = pd.read_sql(session.query(Grade).statement, session.bind)
+    #data = pd.read_sql(session.query(Grade).statement, session.bind)
+    data = LoadScoresPerPeriod(1)
 
     print(data.head())
     

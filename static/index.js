@@ -16,8 +16,12 @@ function DrawGraphs()
             y : data.map(obj => obj.AvgScore),
             type : "bar"
         }
+
+        layout = {
+            yaxis: {range: [0,100]}
+        }
     
-        Plotly.newPlot("Plot", [trace] )  
+        Plotly.newPlot("Plot", [trace], layout )  
 
     })
 
